@@ -1,63 +1,132 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 export default function Home() {
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // スライドショー用の画像
+  const slides = [
+    { id: 1, image: '/slides/rabbit-1.jpg', text: '' },
+    { id: 2, image: '/slides/rabbit-2.jpg', text: '' },
+    { id: 3, image: '/slides/rabbit-3.jpg', text: '' },
+    { id: 4, image: '/slides/rabbit-4.jpg', text: '' },
+  ];
+
+  // 自動スライド
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [slides.length]);
+
+  // 仮の記事データ
+  const articles = [
+    {
+      id: 1,
+      title: 'うさぎの基本的な飼い方',
+      excerpt: 'うさぎを初めて飼う方へ。ケージの選び方、食事、温度管理など基本をご紹介します。',
+      date: '2026-01-10',
+      category: '飼育基礎',
+    },
+    {
+      id: 2,
+      title: 'うさぎの健康チェックポイント',
+      excerpt: '毎日のチェックで病気の早期発見。うんちの状態、食欲、行動の変化を見逃さないコツ。',
+      date: '2026-01-08',
+      category: '健康管理',
+    },
+    {
+      id: 3,
+      title: 'おすすめの牧草の選び方',
+      excerpt: 'チモシー1番刈り、2番刈り、アルファルファ。うさぎの年齢や好みに合わせた牧草選び。',
+      date: '2026-01-05',
+      category: '食事',
+    },
+    {
+      id: 4,
+      title: 'うさぎとの信頼関係の築き方',
+      excerpt: '抱っこが苦手なうさぎさんでも大丈夫。時間をかけて信頼を育む方法をご紹介。',
+      date: '2026-01-03',
+      category: 'コミュニケーション',
+    },
+  ];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div>
+      {/* 全画面スライドショー */}
+      <section className="relative overflow-hidden" style={{ height: 'calc(100vh - 104px)' }}>
+        {slides.map((slide, index) => (
+          <div
+            key={slide.id}
+            className={`absolute inset-0 transition-opacity duration-1000 ${
+              index === currentSlide ? 'opacity-100' : 'opacity-0'
+            }`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            <div className="h-full relative">
+              <Image
+                src={slide.image}
+                alt={slide.text}
+                fill
+                className="object-cover"
+                priority={index === 0}
+              />
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                <p className="text-4xl font-semibold text-white drop-shadow-lg">
+                  {slide.text}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* スライドインジケーター */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-2 z-10">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              className={`w-3 h-3 rounded-full transition ${
+                index === currentSlide ? 'bg-white' : 'bg-white/50'
+              }`}
+              aria-label={`スライド ${index + 1}`}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          ))}
+        </div>
+      </section>
+
+      {/* 記事一覧 */}
+      <main className="container mx-auto px-4 py-16">
+        <h2 className="text-3xl font-bold text-earth mb-8 text-center">新着記事</h2>
+        
+        <div className="grid md:grid-cols-2 gap-6 mx-auto">
+          {articles.map((article) => (
+            <article
+              key={article.id}
+              className="bg-white border-2 border-grass-light rounded-lg p-6 hover:border-grass hover:shadow-lg transition"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xs bg-grass text-white px-3 py-1 rounded-full">
+                  {article.category}
+                </span>
+                <span className="text-xs text-gray-500">{article.date}</span>
+              </div>
+              
+              <h3 className="text-xl font-bold text-earth mb-2">
+                {article.title}
+              </h3>
+              
+              <p className="text-gray-600 mb-4">
+                {article.excerpt}
+              </p>
+              
+              <button className="text-grass font-semibold hover:text-grass-light transition">
+                続きを読む
+              </button>
+            </article>
+          ))}
         </div>
       </main>
     </div>
