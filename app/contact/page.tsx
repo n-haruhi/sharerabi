@@ -69,7 +69,7 @@ export default function ContactPage() {
               <form onSubmit={handleSubmit} className="space-y-8">
                 {/* お名前 */}
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                  <label htmlFor="name" className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                     <User size={18} className="text-grass" />
                     お名前 <span className="text-red-500">*</span>
                   </label>
@@ -87,7 +87,7 @@ export default function ContactPage() {
 
                 {/* メールアドレス */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mt-6 mb-2 flex items-center gap-2">
+                  <label htmlFor="email" className="text-sm font-medium text-gray-700 mt-6 mb-2 flex items-center gap-2">
                     <Mail size={18} className="text-grass" />
                     メールアドレス <span className="text-red-500">*</span>
                   </label>
@@ -105,7 +105,7 @@ export default function ContactPage() {
 
                 {/* お問い合わせ種別 */}
                 <div>
-                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mt-6 mb-2 flex items-center gap-2">
+                  <label htmlFor="subject" className="text-sm font-medium text-gray-700 mt-6 mb-2 flex items-center gap-2">
                     <MessageSquare size={18} className="text-grass" />
                     お問い合わせ種別 <span className="text-red-500">*</span>
                   </label>
