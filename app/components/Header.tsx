@@ -2,14 +2,15 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Home, Images, MessageCircleQuestion } from 'lucide-react';
 
 export default function Header() {
   const pathname = usePathname();
 
   const navItems = [
-    { name: 'ホーム', path: '/' },
-    { name: 'ギャラリー', path: '/gallery' },
-    { name: '質問コーナー', path: '/questions' },
+    { name: 'ホーム', path: '/', icon: Home },
+    { name: 'ギャラリー', path: '/gallery', icon: Images },
+    { name: '質問コーナー', path: '/questions', icon: MessageCircleQuestion },
   ];
 
   return (
@@ -32,20 +33,24 @@ export default function Header() {
         {/* ナビゲーション */}
         <nav className="pb-4">
           <ul className="flex justify-center gap-6">
-            {navItems.map((item) => (
-              <li key={item.path}>
-                <Link
-                  href={item.path}
-                  className={`px-4 py-2 transition ${
-                    pathname === item.path
-                      ? 'text-cream font-semibold border-b-2 border-cream'
-                      : 'text-white hover:text-cream'
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              </li>
-            ))}
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.path}>
+                  <Link
+                    href={item.path}
+                    className={`px-4 py-2 transition flex items-center gap-2 ${
+                      pathname === item.path
+                        ? 'text-cream font-semibold border-b-2 border-cream'
+                        : 'text-white hover:text-cream'
+                    }`}
+                  >
+                    <Icon size={18} />
+                    {item.name}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
       </div>

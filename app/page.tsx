@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -121,10 +122,12 @@ export default function Home() {
               <p className="text-gray-600 mb-4">
                 {article.excerpt}
               </p>
-              
-              <button className="text-grass font-semibold hover:text-grass-light transition">
+              <Link
+                href={`/articles/${article.id}`}
+                className="text-grass font-semibold hover:text-grass-light transition"
+              >
                 続きを読む
-              </button>
+              </Link>
             </article>
           ))}
         </div>
