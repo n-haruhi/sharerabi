@@ -102,7 +102,7 @@ export default function Home() {
       <main className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-earth mb-8 text-center">新着記事</h2>
         
-        <div className="grid md:grid-cols-2 gap-6 mx-auto">
+        <div className="grid md:grid-cols-3 max-w-6xl gap-6 mx-auto">
           {articles.map((article) => (
             <article
               key={article.id}
