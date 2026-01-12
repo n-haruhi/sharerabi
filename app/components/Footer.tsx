@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import {Instagram, Facebook } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -63,13 +64,13 @@ export default function Footer() {
               </li>
             </ul>
             
-            {/* SNSアイコン（将来追加用） */}
+            {/* SNSアイコン */}
             <div className="mt-4 flex gap-3">
-              <a href="#" className="text-2xl hover:text-cream transition">
-                𝕏
+              <a href="#" className="hover:text-cream transition" aria-label="Instagram">
+                <Instagram size={24} />
               </a>
-              <a href="#" className="text-2xl hover:text-cream transition">
-                
+              <a href="#" className="hover:text-cream transition" aria-label="Facebook">
+                <Facebook size={24} />
               </a>
             </div>
           </div>
