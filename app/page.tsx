@@ -3,16 +3,27 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase';
+
+type Article = {
+  id: string;
+  title: string;
+  category: string;
+  created_at: string;
+  content: string;
+};
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
 
   // スライドショー用の画像
   const slides = [
-    { id: 1, image: '/slides/rabbit-1.jpg', text: '' },
-    { id: 2, image: '/slides/rabbit-2.jpg', text: '' },
-    { id: 3, image: '/slides/rabbit-3.jpg', text: '' },
-    { id: 4, image: '/slides/rabbit-4.jpg', text: '' },
+    { id: 1, image: '/slides/hero1.jpg', text: '' },
+    { id: 2, image: '/slides/hero2.jpg', text: '' },
+    { id: 3, image: '/slides/hero3.jpg', text: '' },
   ];
 
   // 自動スライド
@@ -23,37 +34,30 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [slides.length]);
 
-  // 仮の記事データ
-  const articles = [
-    {
-      id: 1,
-      title: 'うさぎの基本的な飼い方',
-      excerpt: 'うさぎを初めて飼う方へ。ケージの選び方、食事、温度管理など基本をご紹介します。',
-      date: '2026-01-10',
-      category: '飼育基礎',
-    },
-    {
-      id: 2,
-      title: 'うさぎの健康チェックポイント',
-      excerpt: '毎日のチェックで病気の早期発見。うんちの状態、食欲、行動の変化を見逃さないコツ。',
-      date: '2026-01-08',
-      category: '健康管理',
-    },
-    {
-      id: 3,
-      title: 'おすすめの牧草の選び方',
-      excerpt: 'チモシー1番刈り、2番刈り、アルファルファ。うさぎの年齢や好みに合わせた牧草選び。',
-      date: '2026-01-05',
-      category: '食事',
-    },
-    {
-      id: 4,
-      title: 'うさぎとの信頼関係の築き方',
-      excerpt: '抱っこが苦手なうさぎさんでも大丈夫。時間をかけて信頼を育む方法をご紹介。',
-      date: '2026-01-03',
-      category: 'コミュニケーション',
-    },
-  ];
+  // 記事を取得
+  useEffect(() => {
+    const loadArticles = async () => {
+      const { data, error } = await supabase
+        .from('articles')
+        .select('id, title, category, created_at, content')
+        .eq('published', true)
+        .order('created_at', { ascending: false })
+        .limit(6);
+
+      if (!error && data) {
+        setArticles(data);
+      }
+      setLoading(false);
+    };
+
+    loadArticles();
+  }, [supabase]);
+
+  // 記事の冒頭100文字を抽出
+  const getExcerpt = (content: string) => {
+    const text = content.replace(/^#{1,3}\s+.+$/gm, '').replace(/^-\s+.+$/gm, '').trim();
+    return text.substring(0, 100) + (text.length > 100 ? '...' : '');
+  };
 
   return (
     <div>
@@ -74,7 +78,7 @@ export default function Home() {
                 className="object-cover"
                 priority={index === 0}
               />
-              <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+              <div className="absolute inset-0 flex items-center justify-center">
                 <p className="text-4xl font-semibold text-white drop-shadow-lg">
                   {slide.text}
                 </p>
@@ -102,35 +106,38 @@ export default function Home() {
       <main className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-earth mb-8 text-center">新着記事</h2>
         
-        <div className="grid md:grid-cols-3 max-w-6xl gap-6 mx-auto">
-          {articles.map((article) => (
-            <article
-              key={article.id}
-              className="bg-white border-2 border-grass-light rounded-lg p-6 hover:border-grass hover:shadow-lg transition"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-xs bg-grass text-white px-3 py-1 rounded-full">
-                  {article.category}
-                </span>
-                <span className="text-xs text-gray-500">{article.date}</span>
-              </div>
-              
-              <h3 className="text-xl font-bold text-earth mb-2">
-                {article.title}
-              </h3>
-              
-              <p className="text-gray-600 mb-4">
-                {article.excerpt}
-              </p>
+        {loading ? (
+          <p className="text-center text-gray-600">読込中...</p>
+        ) : articles.length === 0 ? (
+          <p className="text-center text-gray-600">まだ記事がありません</p>
+        ) : (
+          <div className="grid md:grid-cols-3 max-w-6xl gap-6 mx-auto">
+            {articles.map((article) => (
               <Link
+                key={article.id}
                 href={`/articles/${article.id}`}
-                className="text-grass font-semibold hover:text-grass-light transition"
+                className="block bg-white border-2 border-grass-light rounded-lg p-6 hover:border-grass hover:shadow-lg transition cursor-pointer"
               >
-                続きを読む
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xs bg-grass text-white px-3 py-1 rounded-full">
+                    {article.category || '未分類'}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {new Date(article.created_at).toLocaleDateString('ja-JP')}
+                  </span>
+                </div>
+                
+                <h3 className="text-xl font-bold text-earth mb-2">
+                  {article.title}
+                </h3>
+                
+                <p className="text-gray-600">
+                  {getExcerpt(article.content)}
+                </p>
               </Link>
-            </article>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

@@ -1,8 +1,20 @@
 'use client';
 
-import { use } from 'react';
+import { use, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Calendar, User, Tag } from 'lucide-react';
+import { createClient } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
+
+type Article = {
+  id: string;
+  title: string;
+  category: string;
+  created_at: string;
+  image_url: string;
+  content: string;
+  author_id: string;
+};
 
 export default function ArticleDetailPage({
   params,
@@ -10,97 +22,105 @@ export default function ArticleDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const router = useRouter();
+  const supabase = createClient();
+  
+  const [article, setArticle] = useState<Article | null>(null);
+  const [authorName, setAuthorName] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  // 仮の記事データ
-  const article = {
-    id: parseInt(id),
-    title: 'うさぎの基本的な飼い方',
-    category: '飼育基礎',
-    date: '2026-01-10',
-    author: 'シェアラビ編集部',
-    image: '/slides/rabbit-1.jpg',
-    content: `
-うさぎを初めて飼う方へ、基本的な飼育方法をご紹介します。
+  useEffect(() => {
+    const loadArticle = async () => {
+      // 記事を取得
+      const { data: articleData, error: articleError } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('id', id)
+        .eq('published', true)
+        .single();
 
-## ケージの選び方
+      if (articleError || !articleData) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
 
-うさぎのケージは、体長の3〜4倍程度の広さが理想的です。最低でも幅60cm×奥行き50cm×高さ50cm以上のものを選びましょう。
+      setArticle(articleData);
 
-床がすのこタイプになっているものは、足を痛めることがあるため、マットを敷くことをおすすめします。
+      // 著者情報を取得
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', articleData.author_id)
+        .single();
 
-## 食事について
+      setAuthorName(profileData?.username || '編集部');
+      setLoading(false);
+    };
 
-うさぎの主食は牧草です。チモシーを中心に、常に新鮮な牧草を与えましょう。
+    loadArticle();
+  }, [id, supabase]);
 
-### 牧草の種類
-- チモシー1番刈り：繊維質が豊富で成兎向き
-- チモシー2番刈り：やわらかく子うさぎやシニアうさぎ向き
-- アルファルファ：高カロリーで成長期向き
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xl text-gray-600">読込中...</p>
+      </div>
+    );
+  }
 
-ペレットは補助食として、体重の1.5〜3%程度を1日2回に分けて与えます。
-
-## 温度管理
-
-うさぎにとって快適な温度は18〜24℃です。夏は28℃以上、冬は15℃以下にならないよう、エアコンやヒーターで調整しましょう。
-
-特に夏場の暑さには弱いため、熱中症に注意が必要です。
-
-## 日常のお世話
-
-### 毎日行うこと
-- 新鮮な水の交換
-- 牧草の補充
-- ペレットを与える
-- ケージの簡単な掃除
-- 健康チェック
-
-### 週1回程度
-- ブラッシング（換毛期は毎日）
-- ケージの徹底的な掃除
-
-### 月1回程度
-- 爪切り
-- 体重測定
-
-## まとめ
-
-うさぎは繊細な動物ですが、基本をしっかり押さえれば、楽しく一緒に暮らすことができます。
-
-愛情をもって、毎日の変化を観察することが大切です。
-    `,
-  };
+  if (notFound || !article) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-2xl text-gray-600 mb-4">記事が見つかりません</p>
+          <button
+            onClick={() => router.push('/')}
+            className="px-6 py-3 bg-grass text-white rounded-lg hover:bg-grass-light transition"
+          >
+            ホームに戻る
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-cream">
       <article className="container mx-auto px-4 py-16">
         <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
           {/* アイキャッチ画像 */}
-          <div className="relative h-80 w-full">
-            <Image
-              src={article.image}
-              alt={article.title}
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
+          {article.image_url && (
+            <div className="relative h-80 w-full">
+              <Image
+                src={article.image_url}
+                alt={article.title}
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+          )}
 
           {/* 記事メタ情報 */}
           <div className="p-8">
             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
-              <span className="flex items-center gap-1">
-                <Tag size={16} className="text-grass" />
-                <span className="bg-grass text-white px-3 py-1 rounded-full text-xs">
-                  {article.category}
+              {article.category && (
+                <span className="flex items-center gap-1">
+                  <Tag size={16} className="text-grass" />
+                  <span className="bg-grass text-white px-3 py-1 rounded-full text-xs">
+                    {article.category}
+                  </span>
                 </span>
-              </span>
+              )}
               <span className="flex items-center gap-1">
                 <Calendar size={16} className="text-grass" />
-                {article.date}
+                {new Date(article.created_at).toLocaleDateString('ja-JP')}
               </span>
               <span className="flex items-center gap-1">
                 <User size={16} className="text-grass" />
-                {article.author}
+                {authorName}
               </span>
             </div>
 
