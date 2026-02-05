@@ -11,11 +11,13 @@ type Article = {
   category: string;
   created_at: string;
   content: string;
+  author_id: string;
 };
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [articles, setArticles] = useState<Article[]>([]);
+  const [authorNames, setAuthorNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
@@ -39,13 +41,28 @@ export default function Home() {
     const loadArticles = async () => {
       const { data, error } = await supabase
         .from('articles')
-        .select('id, title, category, created_at, content')
+        .select('id, title, category, created_at, content, author_id')
         .eq('published', true)
         .order('created_at', { ascending: false })
         .limit(6);
 
       if (!error && data) {
         setArticles(data);
+        
+        // 著者名を取得
+        const authorIds = [...new Set(data.map(a => a.author_id))];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, username')
+          .in('id', authorIds);
+        
+        if (profiles) {
+          const nameMap: Record<string, string> = {};
+          profiles.forEach(profile => {
+            nameMap[profile.id] = profile.username || '編集部';
+          });
+          setAuthorNames(nameMap);
+        }
       }
       setLoading(false);
     };
@@ -116,24 +133,47 @@ export default function Home() {
               <Link
                 key={article.id}
                 href={`/articles/${article.id}`}
-                className="block bg-white border-2 border-grass-light rounded-lg p-6 hover:border-grass hover:shadow-lg transition cursor-pointer"
+                className="flex flex-col bg-white border-2 border-grass-light rounded-lg p-6 hover:border-grass hover:shadow-lg transition cursor-pointer"
               >
-                <div className="flex items-center gap-2 mb-3">
+                {/* タグ */}
+                <div className="mb-3">
                   <span className="text-xs bg-grass text-white px-3 py-1 rounded-full">
                     {article.category || '未分類'}
                   </span>
-                  <span className="text-xs text-gray-500">
-                    {new Date(article.created_at).toLocaleDateString('ja-JP')}
-                  </span>
                 </div>
                 
-                <h3 className="text-xl font-bold text-earth mb-2">
+                {/* タイトル */}
+                <h3 
+                  className="text-xl font-bold text-earth mb-2 overflow-hidden"
+                  style={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical'
+                  }}
+                >
                   {article.title}
                 </h3>
-                
-                <p className="text-gray-600">
+
+                {/* 本文抜粋 */}
+                <p 
+                  className="text-gray-600 overflow-hidden"
+                  style={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: 4,
+                    WebkitBoxOrient: 'vertical',
+                    height: '6rem'
+                  }}
+                >
                   {getExcerpt(article.content)}
                 </p>
+                
+                {/* 日付とユーザー名（最下部に固定） */}
+                <div className="flex justify-between items-center text-xs text-gray-500 mt-auto pt-4">
+                  <span>
+                    {new Date(article.created_at).toLocaleDateString('ja-JP')}
+                  </span>
+                  <span>{authorNames[article.author_id] || '編集部'}</span>
+                </div>
               </Link>
             ))}
           </div>

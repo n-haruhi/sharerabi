@@ -26,12 +26,25 @@ export default function EditProfilePage() {
     setError('');
     setSaving(true);
 
+    // user_metadataを更新
     const { error: updateError } = await supabase.auth.updateUser({
       data: { username }
     });
 
     if (updateError) {
       setError('更新に失敗しました');
+      setSaving(false);
+      return;
+    }
+
+    // profilesテーブルも更新
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .update({ username })
+      .eq('id', user!.id);
+
+    if (profileError) {
+      setError('プロフィールの更新に失敗しました');
       setSaving(false);
     } else {
       setSuccess(true);

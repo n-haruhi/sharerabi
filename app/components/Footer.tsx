@@ -9,7 +9,7 @@ export default function Footer() {
           {/* サイト情報 */}
           <div>
             <h3 className="text-xl font-bold mb-4">シェアラビ</h3>
-            <p className="text-sm text-cream/80">
+            <p className="text-sm text-white/80">
               うさぎの情報をみんなでシェアする
               <br />
               コミュニティサイト
@@ -77,7 +77,7 @@ export default function Footer() {
         </div>
 
         {/* コピーライト */}
-        <div className="border-t border-white/20 mt-8 pt-6 text-center text-sm text-cream/80">
+        <div className="border-t border-white/20 mt-8 pt-6 text-center text-sm text-white/80">
           © 2026 シェアラビ. All rights reserved.
         </div>
       </div>
